@@ -64,4 +64,4 @@ pids
 *~
 
 # Generated schema files (if you want to ignore them)
-# .vscode/struct-custom-schema.json
+.vscode/struct-custom-schema.json
