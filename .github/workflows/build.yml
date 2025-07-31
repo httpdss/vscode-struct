@@ -61,8 +61,13 @@ jobs:
 
     - name: Run tests
       run: |
-        xvfb-run -a npm test
-      continue-on-error: true  # Allow tests to fail for now since we don't have actual tests yet
+        if [ -f "./out/test/runTest.js" ]; then
+          echo "Running tests..."
+          xvfb-run -a npm test
+        else
+          echo "No tests found, skipping test execution"
+          exit 0
+        fi
 
   publish:
     runs-on: ubuntu-latest
