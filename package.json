@@ -3,7 +3,7 @@
   "displayName": "Struct YAML Support",
   "description": "VS Code extension for struct YAML configuration files with schema validation",
   "version": "0.1.0",
-  "publisher": "httpdss",
+  "publisher": "kennethbelitzky",
   "engines": {
     "vscode": "^1.74.0"
   },
