@@ -1,0 +1,28 @@
+structure:
+  - "main.go":
+      content: |
+        package main
+        
+        import "fmt"
+        
+        func main() {
+            fmt.Println("Hello, {{.Name}}!")
+        }
+        
+  - "README.md":
+      content: |
+        # {{.Name}}
+        
+        A simple Go application.
+
+variables:
+  - "Name":
+      description: "The name of the project"
+      type: "string"
+      default: "World"
+
+pre_hooks:
+  - "echo 'Starting generation...'"
+
+post_hooks:
+  - "echo 'Generation complete!'"

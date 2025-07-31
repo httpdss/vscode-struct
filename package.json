@@ -1,0 +1,79 @@
+{
+  "name": "vscode-struct",
+  "displayName": "Struct YAML Support",
+  "description": "VS Code extension for struct YAML configuration files with schema validation",
+  "version": "0.1.0",
+  "publisher": "httpdss",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Formatters"
+  ],
+  "activationEvents": [
+    "onLanguage:yaml"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Struct",
+      "properties": {
+        "struct.commandPath": {
+          "type": "string",
+          "default": "struct",
+          "description": "Path to the struct command executable"
+        },
+        "struct.customStructuresPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to custom structures directory"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "struct.generateSchema",
+        "title": "Generate Custom Schema",
+        "category": "Struct"
+      },
+      {
+        "command": "struct.refreshSchema",
+        "title": "Refresh Schema",
+        "category": "Struct"
+      }
+    ],
+    "yamlValidation": [
+      {
+        "fileMatch": "*.struct.yaml",
+        "url": "./schemas/struct-schema.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "@types/vscode": "^1.74.0",
+    "@vscode/test-electron": "^2.3.4",
+    "@vscode/vsce": "^3.6.0",
+    "esbuild": "^0.18.20",
+    "typescript": "^5.1.6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/httpdss/vscode-struct.git"
+  },
+  "bugs": {
+    "url": "https://github.com/httpdss/vscode-struct/issues"
+  },
+  "homepage": "https://github.com/httpdss/vscode-struct#readme",
+  "license": "MIT"
+}
