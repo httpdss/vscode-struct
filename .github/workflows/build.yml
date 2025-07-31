@@ -62,7 +62,7 @@ jobs:
     - name: Run tests
       run: |
         xvfb-run -a npm test
-      continue-on-error: true  # Allow tests to fail for now since we don't have tests yet
+      continue-on-error: true  # Allow tests to fail for now since we don't have actual tests yet
 
   publish:
     runs-on: ubuntu-latest
