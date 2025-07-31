@@ -19,6 +19,7 @@ const execAsync = promisify(exec);
 
 let schemaProvider: vscode.Disposable | undefined;
 let statusBarItem: vscode.StatusBarItem;
+let documentSelector: vscode.DocumentSelector = { pattern: '**/*.struct.yaml' };
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Struct YAML extension is now active!');
@@ -44,6 +45,9 @@ export function activate(context: vscode.ExtensionContext) {
     const refreshSchemaCommand = vscode.commands.registerCommand('struct.refreshSchema', async () => {
         await updateSchemaForStructFiles();
     });
+
+    // Set up initial schema
+    setupYamlSchema();
 
     // Update schema on activation
     updateSchemaForStructFiles();
@@ -120,6 +124,13 @@ async function generateCustomSchema(): Promise<void> {
             
             progress.report({ increment: 50 });
 
+            // Parse the generated schema to get the plugin list
+            const generatedSchema = JSON.parse(stdout);
+            const pluginList = generatedSchema.definitions?.PluginList?.enum || [];
+            
+            // Create merged schema with custom plugin list
+            const mergedSchema = createMergedSchema(pluginList);
+
             // Save custom schema
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
             if (workspaceFolder) {
@@ -131,16 +142,99 @@ async function generateCustomSchema(): Promise<void> {
                     fs.mkdirSync(vscodeDir, { recursive: true });
                 }
                 
-                fs.writeFileSync(customSchemaPath, stdout);
+                fs.writeFileSync(customSchemaPath, JSON.stringify(mergedSchema, null, 2));
                 
                 progress.report({ increment: 100 });
                 
                 vscode.window.showInformationMessage('Custom schema generated successfully!');
             }
         });
+        
+        // Update schema after generation
+        setupYamlSchema();
     } catch (error: any) {
         vscode.window.showErrorMessage(`Failed to generate custom schema: ${error.message}`);
     }
+}
+
+function setupYamlSchema() {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+        return;
+    }
+
+    const customSchemaPath = path.join(workspaceFolder.uri.fsPath, '.vscode', 'struct-custom-schema.json');
+    const defaultSchemaPath = path.join(__dirname, '..', 'schemas', 'struct-schema.json');
+    
+    // Check if custom schema exists
+    const useCustomSchema = fs.existsSync(customSchemaPath);
+    const schemaUri = useCustomSchema 
+        ? vscode.Uri.file(customSchemaPath).toString()
+        : vscode.Uri.file(defaultSchemaPath).toString();
+    
+    console.log(`[DEBUG] Using schema: ${useCustomSchema ? 'custom' : 'default'} - ${schemaUri}`);
+    
+    // Update YAML schema associations
+    updateYamlSchemaAssociation(schemaUri);
+}
+
+function createMergedSchema(pluginList: string[]) {
+    // Read the base schema
+    const defaultSchemaPath = path.join(__dirname, '..', 'schemas', 'struct-schema.json');
+    const baseSchema = JSON.parse(fs.readFileSync(defaultSchemaPath, 'utf8'));
+    
+    // Create the merged schema with custom plugin enum
+    const mergedSchema = {
+        ...baseSchema,
+        properties: {
+            ...baseSchema.properties,
+            folders: {
+                ...baseSchema.properties.folders,
+                items: {
+                    ...baseSchema.properties.folders.items,
+                    patternProperties: {
+                        '.*': {
+                            ...baseSchema.properties.folders.items.patternProperties['.*'],
+                            properties: {
+                                ...baseSchema.properties.folders.items.patternProperties['.*'].properties,
+                                struct: {
+                                    oneOf: [
+                                        {
+                                            type: 'string',
+                                            enum: pluginList
+                                        },
+                                        {
+                                            type: 'array',
+                                            items: {
+                                                type: 'string',
+                                                enum: pluginList
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+    
+    console.log(`[DEBUG] Created merged schema with ${pluginList.length} custom plugins`);
+    return mergedSchema;
+}
+
+function updateYamlSchemaAssociation(schemaUri: string) {
+    const yamlConfig = vscode.workspace.getConfiguration('yaml');
+    const schemas: { [key: string]: string[] } = yamlConfig.get('schemas') || {};
+    
+    // Update the schema association for *.struct.yaml files
+    schemas[schemaUri] = ['*.struct.yaml'];
+    
+    // Set the configuration
+    yamlConfig.update('schemas', schemas, vscode.ConfigurationTarget.Workspace);
+    
+    console.log(`[DEBUG] Updated YAML schema association:`, { [schemaUri]: ['*.struct.yaml'] });
 }
 
 export function deactivate() {

@@ -43,12 +43,6 @@
         "title": "Refresh Schema",
         "category": "Struct"
       }
-    ],
-    "yamlValidation": [
-      {
-        "fileMatch": "*.struct.yaml",
-        "url": "./schemas/struct-schema.json"
-      }
     ]
   },
   "scripts": {
