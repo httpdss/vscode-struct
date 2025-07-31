@@ -1,18 +1,18 @@
-structure:
+files:
   - "main.go":
       content: |
         package main
-        
+
         import "fmt"
-        
+
         func main() {
             fmt.Println("Hello, {{.Name}}!")
         }
-        
+
   - "README.md":
       content: |
         # {{.Name}}
-        
+
         A simple Go application.
 
 variables:
