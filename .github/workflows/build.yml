@@ -8,6 +8,10 @@ on:
   release:
     types: [ published ]
 
+permissions:
+  contents: write  # Required for uploading release assets
+  actions: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -103,8 +107,10 @@ jobs:
       run: npx vsce package
 
     - name: Upload Release Asset
-      run: |
-        gh release upload ${{ github.event.release.tag_name }} ./vscode-struct-${{ steps.extract_version.outputs.version }}.vsix --clobber
+      uses: softprops/action-gh-release@v2
+      with:
+        files: ./vscode-struct-${{ steps.extract_version.outputs.version }}.vsix
+        tag_name: ${{ github.event.release.tag_name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
