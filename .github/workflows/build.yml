@@ -98,14 +98,10 @@ jobs:
       run: npx vsce package
 
     - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
+      run: |
+        gh release upload ${{ github.event.release.tag_name }} ./vscode-struct-${{ steps.extract_version.outputs.version }}.vsix --clobber
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./vscode-struct-${{ steps.extract_version.outputs.version }}.vsix
-        asset_name: vscode-struct-${{ steps.extract_version.outputs.version }}.vsix
-        asset_content_type: application/zip
 
     # Uncomment if you want to publish to VS Code Marketplace
     # - name: Publish to VS Code Marketplace
