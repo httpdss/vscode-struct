@@ -1,9 +1,9 @@
 function updateStatusBar(isAvailable: boolean) {
     if (isAvailable) {
-        statusBarItem.text = 'Struct: $(check) Available';
+        statusBarItem.text = 'StructKit: $(check) Available';
         statusBarItem.color = 'lightgreen';
     } else {
-        statusBarItem.text = 'Struct: $(x) Not Available';
+        statusBarItem.text = 'StructKit: $(x) Not Available';
         statusBarItem.color = 'red';
     }
     statusBarItem.show();
@@ -22,7 +22,7 @@ let statusBarItem: vscode.StatusBarItem;
 let documentSelector: vscode.DocumentSelector = { pattern: '**/*.struct.yaml' };
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Struct YAML extension is now active!');
+    console.log('StructKit extension is now active!');
 
     // Create status bar item
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -31,7 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register configuration change listener
     const configWatcher = vscode.workspace.onDidChangeConfiguration(event => {
-        if (event.affectsConfiguration('struct')) {
+        if (event.affectsConfiguration('structkit') || event.affectsConfiguration('struct')) {
             updateSchemaForStructFiles();
         }
     });
@@ -55,10 +55,27 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(configWatcher, generateSchemaCommand, refreshSchemaCommand);
 }
 
+function getConfig(key: string, defaultValue: string): string {
+    // Try new structkit config first, fall back to old struct config
+    const newConfig = vscode.workspace.getConfiguration('structkit');
+    const oldConfig = vscode.workspace.getConfiguration('struct');
+
+    const newValue = newConfig.get<string>(key);
+    if (newValue !== undefined && newValue !== '') {
+        return newValue;
+    }
+
+    const oldValue = oldConfig.get<string>(key);
+    if (oldValue !== undefined && oldValue !== '') {
+        return oldValue;
+    }
+
+    return defaultValue;
+}
+
 async function updateSchemaForStructFiles() {
-    const config = vscode.workspace.getConfiguration('struct');
-    const structPath = config.get<string>('commandPath', 'struct');
-    const customStructuresPath = config.get<string>('customStructuresPath', '');
+    const structPath = getConfig('commandPath', 'structkit');
+    const customStructuresPath = getConfig('customStructuresPath', '');
 
     try {
         // Check if struct command is available
@@ -72,33 +89,32 @@ async function updateSchemaForStructFiles() {
             await generateCustomSchema();
         }
     } catch (error: any) {
-        console.log(`[DEBUG] Command failed: ${structPath} list`);        
+        console.log(`[DEBUG] Command failed: ${structPath} list`);
         console.log(`[DEBUG] Error:`, error.message || error);
-        console.log('Struct command not found or not working, using default schema');
+        console.log('StructKit command not found or not working, using default schema');
         updateStatusBar(false);
-        vscode.window.showWarningMessage(`Struct command not found. Please [install](https://github.com/httpdss/struct/blob/main/docs/installation.md) it to use all features of this extension.`, 'Install').then(selection => {
+        vscode.window.showWarningMessage('StructKit CLI not found. Install it with: pip install structkit', 'Install').then(selection => {
             if (selection === 'Install') {
-                vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://github.com/httpdss/struct/blob/main/docs/installation.md'));
+                vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://github.com/httpdss/structkit'));
             }
         });
     }
 }
 
 async function generateCustomSchema(): Promise<void> {
-    const config = vscode.workspace.getConfiguration('struct');
-    const structPath = config.get<string>('commandPath', 'struct');
-    const customStructuresPath = config.get<string>('customStructuresPath', '');
+    const structPath = getConfig('commandPath', 'structkit');
+    const customStructuresPath = getConfig('customStructuresPath', '');
 
-    // Check if struct command is available first
+    // Check if structkit command is available first
     try {
         await execAsync(`${structPath} list`);
     } catch (error) {
         vscode.window.showErrorMessage(
-            'Struct command not found. Please install it first to generate custom schemas.',
+            'StructKit CLI not found. Install it with: pip install structkit',
             'Install'
         ).then(selection => {
             if (selection === 'Install') {
-                vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://github.com/httpdss/struct/blob/main/docs/installation.md'));
+                vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://github.com/httpdss/structkit'));
             }
         });
         return;

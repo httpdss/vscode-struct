@@ -1,7 +1,7 @@
 {
   "name": "vscode-struct",
-  "displayName": "Struct YAML Support",
-  "description": "VS Code extension for struct YAML configuration files with schema validation",
+  "displayName": "StructKit",
+  "description": "Official StructKit extension for VS Code and Cursor with schema validation and intelligent autocomplete",
   "version": "0.1.0",
   "publisher": "kennethbelitzky",
   "engines": {
@@ -13,22 +13,36 @@
     "Formatters"
   ],
   "activationEvents": [
-    "onLanguage:yaml"
+    "onLanguage:yaml",
+    "workspaceContains:**/.struct.yaml",
+    "workspaceContains:**/*.struct.yaml"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
-      "title": "Struct",
+      "title": "StructKit",
       "properties": {
+        "structkit.commandPath": {
+          "type": "string",
+          "default": "structkit",
+          "description": "Path to the structkit command executable"
+        },
+        "structkit.customStructuresPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to custom structures directory"
+        },
         "struct.commandPath": {
           "type": "string",
-          "default": "struct",
-          "description": "Path to the struct command executable"
+          "default": "structkit",
+          "description": "Deprecated: Use structkit.commandPath instead",
+          "deprecationMessage": "This setting is deprecated. Please use structkit.commandPath instead."
         },
         "struct.customStructuresPath": {
           "type": "string",
           "default": "",
-          "description": "Path to custom structures directory"
+          "description": "Deprecated: Use structkit.customStructuresPath instead",
+          "deprecationMessage": "This setting is deprecated. Please use structkit.customStructuresPath instead."
         }
       }
     },
@@ -36,12 +50,12 @@
       {
         "command": "struct.generateSchema",
         "title": "Generate Custom Schema",
-        "category": "Struct"
+        "category": "StructKit"
       },
       {
         "command": "struct.refreshSchema",
         "title": "Refresh Schema",
-        "category": "Struct"
+        "category": "StructKit"
       }
     ]
   },
