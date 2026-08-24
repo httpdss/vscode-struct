@@ -1,6 +1,6 @@
-# StructKit
+# StructKit for VS Code and Cursor
 
-Official StructKit extension for VS Code and Cursor with schema validation and intelligent autocomplete for `.struct.yaml` configuration files.
+Companion to [StructKit](https://github.com/httpdss/structkit). Schema validation and autocomplete for `.struct.yaml`. Install the CLI with `pip install structkit`. Star the [core repo](https://github.com/httpdss/structkit).
 
 ## Features
 
